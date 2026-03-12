@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionnaire — Création de Site Web</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C87A;
+    --dark: #0F0D0A;
+    --dark2: #1A1712;
+    --dark3: #252018;
+    --border: rgba(201,168,76,0.25);
+    --text: #E8E0D0;
+    --muted: #8A8070;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.08) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(201,168,76,0.015) 80px, rgba(201,168,76,0.015) 81px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  h1 span { color: var(--gold); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 28px auto;
+  }
+
+  /* Progress */
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 48px;
+  }
+
+  .prog-dot {
+    width: 32px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--dark3);
+    transition: background 0.4s;
+  }
+
+  .prog-dot.active { background: var(--gold); }
+  .prog-dot.done { background: rgba(201,168,76,0.4); }
+
+  /* Sections */
+  .section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .section-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  /* Form fields */
+  .field {
+    margin-bottom: 22px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+
+  label .req { color: var(--gold); margin-left: 3px; }
+  label .opt { color: var(--muted); font-size: 10px; letter-spacing: 1px; margin-left: 6px; text-transform: none; font-weight: 300; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    width: 100%;
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+
+  textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A84C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  select option { background: var(--dark2); }
+
+  /* Grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 520px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Checkbox / Radio groups */
+  .check-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    font-size: 13px;
+  }
+
+  .check-item:hover { border-color: rgba(201,168,76,0.5); }
+
+  .check-item input { display: none; }
+
+  .check-item .box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--muted);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .check-item input:checked ~ .box {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .check-item input:checked ~ .box::after {
+    content: '';
+    width: 8px;
+    height: 5px;
+    border-left: 2px solid var(--dark);
+    border-bottom: 2px solid var(--dark);
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+
+  .check-item input:checked ~ span { color: var(--text); }
+  .check-item span { color: var(--muted); }
+
+  /* Color palette picker */
+  .color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .color-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px 6px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .color-opt:hover { border-color: rgba(201,168,76,0.5); }
+  .color-opt input { display: none; }
+  .color-swatch { width: 18px; height: 18px; border-radius: 50%; }
+  .color-opt input:checked ~ .color-label { color: var(--text); }
+  .color-label { color: var(--muted); }
+  .color-opt input:checked + .color-swatch { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* Info note */
+  .note {
+    background: rgba(201,168,76,0.06);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  /* Navigation */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    gap: 12px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--dark);
+  }
+
+  .btn-primary:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(201,168,76,0.25);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--gold); color: var(--text); }
+
+  .btn-success {
+    background: linear-gradient(135deg, #2D6A4F, #40916C);
+    color: white;
+    width: 100%;
+    justify-content: center;
+    padding: 16px;
+    font-size: 15px;
+  }
+
+  .btn-success:hover {
+    background: linear-gradient(135deg, #40916C, #52B788);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(64,145,108,0.3);
+  }
+
+  .btn-pdf {
+    background: linear-gradient(135deg, #7B2D8B, #A855C8);
+    color: white;
+    width: 100%;
+    justify-content: center;
+    padding: 16px;
+    font-size: 15px;
+    border: none;
+  }
+
+  .btn-pdf:hover {
+    background: linear-gradient(135deg, #9B3DAB, #C070E0);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(168,85,200,0.35);
+  }
+
+  .step-info {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Summary */
+  #summary { display: none; }
+
+  .summary-block {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+
+  .summary-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--gold);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .summary-key { color: var(--muted); min-width: 160px; flex-shrink: 0; }
+  .summary-val { color: var(--text); }
+
+  /* Print */
+  @media print {
+    body { background: white; color: black; }
+    .nav, .progress-bar, .badge { display: none; }
+    .section { display: block !important; }
+    .card { border: 1px solid #ddd; background: #fafafa; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="badge">✦ Brief Client</div>
+    <h1>Votre Site Web,<br><span>Notre Vision</span></h1>
+	<h1>TYCOON,<br><span>CENTER TECH</span></h1>
+    <div class="divider"></div>
+    <p class="subtitle">Remplissez ce questionnaire pour nous aider à créer un site web qui reflète parfaitement votre établissement.</p>
+  </div>
+
+  <div class="progress-bar" id="progressBar">
+    <div class="prog-dot active" data-step="1"></div>
+    <div class="prog-dot" data-step="2"></div>
+    <div class="prog-dot" data-step="3"></div>
+    <div class="prog-dot" data-step="4"></div>
+    <div class="prog-dot" data-step="5"></div>
+    <div class="prog-dot" data-step="6"></div>
+  </div>
+
+  <form id="mainForm">
+
+    <!-- SECTION 1 : Infos Générales -->
+    <div class="section active" id="step1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-title">Informations Générales</div>
+          <div class="section-desc">Votre établissement en quelques mots</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Nom de l'établissement <span class="req">*</span></label>
+          <input type="text" name="nom_etablissement" placeholder="Ex : Le Comptoir du Marché" required>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Votre prénom & nom <span class="req">*</span></label>
+            <input type="text" name="contact_nom" placeholder="Jean Dupont" required>
+          </div>
+          <div class="field">
+            <label>Téléphone <span class="req">*</span></label>
+            <input type="tel" name="contact_tel" placeholder="+257 xxx xxx xxx" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Email de contact <span class="req">*</span></label>
+          <input type="email" name="contact_email" placeholder="contact@monestablissement.com" required>
+        </div>
+        <div class="field">
+          <label>Adresse complète</label>
+          <input type="text" name="adresse" placeholder="Avenue, Quartier, Ville, Pays">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Type d'établissement <span class="req">*</span></label>
+          <select name="type_etablissement" required>
+            <option value="">— Sélectionnez —</option>
+            <option>Bar & Commerce (les deux)</option>
+            <option>Bar / Lounge</option>
+            <option>Commerce / Boutique</option>
+            <option>Restaurant-Bar</option>
+            <option>Épicerie fine / Alimentation</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Description de votre activité <span class="req">*</span></label>
+          <textarea name="description" placeholder="Décrivez votre établissement : ce que vous vendez, vos services, votre ambiance, votre clientèle cible..." required></textarea>
+        </div>
+      </div>
+
+      <div class="nav">
+        <span class="step-info">ÉTAPE 1 / 6</span>
+        <button type="button" class="btn btn-primary" onclick="goTo(2)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 2 : Contenu & Pages -->
+    <div class="section" id="step2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-title">Pages & Contenu</div>
+          <div class="section-desc">Ce que le site doit présenter</div>
+        </div>
+      </div>
+
+      <div class="note">Cochez toutes les pages que vous souhaitez sur votre site.</div>
+
+      <div class="card">
+        <div class="field">
+          <label>Pages souhaitées</label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="pages" value="accueil" checked><div class="box"></div><span>🏠 Accueil</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="a_propos"><div class="box"></div><span>📖 À Propos</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="menu_boissons"><div class="box"></div><span>🍹 Carte / Menu</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="produits"><div class="box"></div><span>🛍️ Nos Produits</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="galerie"><div class="box"></div><span>📷 Galerie Photos</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="evenements"><div class="box"></div><span>🎉 Événements</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="reservation"><div class="box"></div><span>📅 Réservation</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="contact"><div class="box"></div><span>📍 Contact</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="blog"><div class="box"></div><span>📝 Blog / Actus</span></label>
+            <label class="check-item"><input type="checkbox" name="pages" value="commande_enligne"><div class="box"></div><span>🛒 Commande en ligne</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Fonctionnalités spéciales <span class="opt">(optionnel)</span></label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="fonctions" value="formulaire_contact"><div class="box"></div><span>📨 Formulaire contact</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="google_maps"><div class="box"></div><span>🗺️ Google Maps</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="whatsapp"><div class="box"></div><span>💬 Bouton WhatsApp</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="facebook"><div class="box"></div><span>📘 Lien Facebook</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="instagram"><div class="box"></div><span>📸 Lien Instagram</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="tiktok"><div class="box"></div><span>🎵 Lien TikTok</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="newsletter"><div class="box"></div><span>📧 Newsletter</span></label>
+            <label class="check-item"><input type="checkbox" name="fonctions" value="paiement_en_ligne"><div class="box"></div><span>💳 Paiement en ligne</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Avez-vous déjà un nom de domaine ? <span class="opt">(ex: monbar.com)</span></label>
+          <select name="domaine">
+            <option value="">— Sélectionnez —</option>
+            <option>Oui, j'en ai déjà un</option>
+            <option>Non, j'ai besoin d'en acheter un</option>
+            <option>Je ne sais pas</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Si oui, quel est votre domaine ?</label>
+          <input type="url" name="domaine_existant" placeholder="https://monsite.com">
+        </div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn btn-ghost" onclick="goTo(1)">← Retour</button>
+        <span class="step-info">ÉTAPE 2 / 6</span>
+        <button type="button" class="btn btn-primary" onclick="goTo(3)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 3 : Design & Ambiance -->
+    <div class="section" id="step3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-title">Design & Ambiance</div>
+          <div class="section-desc">L'identité visuelle de votre site</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Ambiance souhaitée pour le site <span class="req">*</span></label>
+          <select name="ambiance" required>
+            <option value="">— Sélectionnez l'ambiance —</option>
+            <option>Moderne & Épuré</option>
+            <option>Luxe & Sophistiqué</option>
+            <option>Festif & Coloré</option>
+            <option>Traditionnel & Chaleureux</option>
+            <option>Minimaliste</option>
+            <option>Rustique / Africain</option>
+            <option>Tendance / Jeune</option>
+            <option>Professionnel & Sérieux</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Couleurs préférées pour le site</label>
+          <div class="color-options">
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="noir_or"><div class="color-swatch" style="background:linear-gradient(135deg,#1a1a1a,#c9a84c)"></div><span class="color-label">Noir & Or</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="rouge_noir"><div class="color-swatch" style="background:linear-gradient(135deg,#8B0000,#222)"></div><span class="color-label">Rouge & Noir</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="vert_or"><div class="color-swatch" style="background:linear-gradient(135deg,#2D6A4F,#C9A84C)"></div><span class="color-label">Vert & Or</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="bleu_blanc"><div class="color-swatch" style="background:linear-gradient(135deg,#003580,#fff)"></div><span class="color-label">Bleu & Blanc</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="orange_marron"><div class="color-swatch" style="background:linear-gradient(135deg,#E07B00,#4A2C0A)"></div><span class="color-label">Orange & Marron</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="rose_dore"><div class="color-swatch" style="background:linear-gradient(135deg,#E8A0BF,#C9A84C)"></div><span class="color-label">Rose & Doré</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="blanc_gris"><div class="color-swatch" style="background:linear-gradient(135deg,#fff,#888)"></div><span class="color-label">Blanc & Gris</span></label>
+            <label class="color-opt"><input type="checkbox" name="couleurs" value="autre"><div class="color-swatch" style="background:conic-gradient(red,yellow,green,blue,red)"></div><span class="color-label">Autre / À définir</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Avez-vous un logo ? <span class="req">*</span></label>
+          <select name="logo" required>
+            <option value="">— Sélectionnez —</option>
+            <option>Oui, j'ai un logo prêt</option>
+            <option>J'ai un logo mais il faut le refaire</option>
+            <option>Non, j'ai besoin d'un logo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Avez-vous des photos de votre établissement ?</label>
+          <select name="photos">
+            <option value="">— Sélectionnez —</option>
+            <option>Oui, j'ai de bonnes photos</option>
+            <option>J'ai quelques photos</option>
+            <option>Non, il faudra utiliser des images génériques</option>
+            <option>Je vais faire une séance photo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Sites web que vous aimez <span class="opt">(pour s'inspirer)</span></label>
+          <textarea name="sites_inspiration" placeholder="Collez ici des URLs de sites web que vous trouvez beaux ou qui vous inspirent..."></textarea>
+        </div>
+        <div class="field">
+          <label>Ce que vous NE voulez PAS <span class="opt">(style, couleurs à éviter)</span></label>
+          <textarea name="ce_que_non" placeholder="Ex: Je ne veux pas de fond trop sombre, pas de couleur violette..."></textarea>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn btn-ghost" onclick="goTo(2)">← Retour</button>
+        <span class="step-info">ÉTAPE 3 / 6</span>
+        <button type="button" class="btn btn-primary" onclick="goTo(4)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 4 : Produits & Menu -->
+    <div class="section" id="step4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-title">Produits & Menu</div>
+          <div class="section-desc">Votre offre commerciale</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Quels types de produits/boissons proposez-vous ? <span class="req">*</span></label>
+          <textarea name="produits_liste" placeholder="Ex: Bières locales et importées, cocktails, sodas, whiskys, vins, snacks, sandwichs, vêtements, électronique..." required></textarea>
+        </div>
+
+        <div class="field">
+          <label>Avez-vous des prix à afficher sur le site ?</label>
+          <select name="afficher_prix">
+            <option value="">— Sélectionnez —</option>
+            <option>Oui, je veux afficher les prix</option>
+            <option>Non, sans les prix</option>
+            <option>Sur certains produits seulement</option>
+            <option>Je ne sais pas encore</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Promotions ou offres spéciales à mettre en avant ?</label>
+          <textarea name="promotions" placeholder="Ex: Happy Hour de 17h à 20h, offre 2+1 sur les bières, livraison gratuite le weekend..."></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Horaires d'ouverture <span class="req">*</span></label>
+          <textarea name="horaires" placeholder="Ex:&#10;Lundi - Vendredi : 9h00 - 23h00&#10;Samedi : 10h00 - 02h00&#10;Dimanche : Fermé" required></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Livraison disponible ?</label>
+            <select name="livraison">
+              <option value="">— Sélectionnez —</option>
+              <option>Oui, livraison à domicile</option>
+              <option>Non</option>
+              <option>En cours de mise en place</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Commande à emporter ?</label>
+            <select name="emporter">
+              <option value="">— Sélectionnez —</option>
+              <option>Oui</option>
+              <option>Non</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn btn-ghost" onclick="goTo(3)">← Retour</button>
+        <span class="step-info">ÉTAPE 4 / 6</span>
+        <button type="button" class="btn btn-primary" onclick="goTo(5)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 5 : Objectifs & Public -->
+    <div class="section" id="step5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div>
+          <div class="section-title">Objectifs & Public Cible</div>
+          <div class="section-desc">Qui visitera votre site et pourquoi</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Votre clientèle cible principale <span class="req">*</span></label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="cible" value="jeunes"><div class="box"></div><span>🎓 Jeunes (18-30 ans)</span></label>
+            <label class="check-item"><input type="checkbox" name="cible" value="adultes"><div class="box"></div><span>👔 Adultes (30-50 ans)</span></label>
+            <label class="check-item"><input type="checkbox" name="cible" value="familles"><div class="box"></div><span>👨‍👩‍👧 Familles</span></label>
+            <label class="check-item"><input type="checkbox" name="cible" value="professionnels"><div class="box"></div><span>💼 Professionnels</span></label>
+            <label class="check-item"><input type="checkbox" name="cible" value="touristes"><div class="box"></div><span>✈️ Touristes</span></label>
+            <label class="check-item"><input type="checkbox" name="cible" value="etudiants"><div class="box"></div><span>📚 Étudiants</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Objectifs principaux du site <span class="req">*</span></label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="objectifs" value="visibilite"><div class="box"></div><span>📡 Être trouvé sur Google</span></label>
+            <label class="check-item"><input type="checkbox" name="objectifs" value="attirer_clients"><div class="box"></div><span>🎯 Attirer de nouveaux clients</span></label>
+            <label class="check-item"><input type="checkbox" name="objectifs" value="vendre_enligne"><div class="box"></div><span>🛒 Vendre en ligne</span></label>
+            <label class="check-item"><input type="checkbox" name="objectifs" value="informer"><div class="box"></div><span>📢 Informer sur les offres</span></label>
+            <label class="check-item"><input type="checkbox" name="objectifs" value="reservations"><div class="box"></div><span>📅 Prendre des réservations</span></label>
+            <label class="check-item"><input type="checkbox" name="objectifs" value="image_pro"><div class="box"></div><span>⭐ Image professionnelle</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Langue(s) du site</label>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="langues" value="fr" checked><div class="box"></div><span>🇫🇷 Français</span></label>
+            <label class="check-item"><input type="checkbox" name="langues" value="en"><div class="box"></div><span>🇬🇧 Anglais</span></label>
+            <label class="check-item"><input type="checkbox" name="langues" value="sw"><div class="box"></div><span>🌍 Swahili</span></label>
+            <label class="check-item"><input type="checkbox" name="langues" value="ln"><div class="box"></div><span>🌍 Lingala</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Avez-vous un site existant à améliorer ?</label>
+          <select name="site_existant">
+            <option value="">— Sélectionnez —</option>
+            <option>Non, c'est un nouveau site</option>
+            <option>Oui, voici l'URL ci-dessous</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>URL du site actuel <span class="opt">(si applicable)</span></label>
+          <input type="url" name="url_actuel" placeholder="https://monanciensite.com">
+        </div>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn btn-ghost" onclick="goTo(4)">← Retour</button>
+        <span class="step-info">ÉTAPE 5 / 6</span>
+        <button type="button" class="btn btn-primary" onclick="goTo(6)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- SECTION 6 : Budget & Délais -->
+    <div class="section" id="step6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div>
+          <div class="section-title">Budget & Délais</div>
+          <div class="section-desc">Planning et investissement</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="grid-2">
+          <div class="field">
+            <label>Budget approximatif</label>
+            <select name="budget">
+              <option value="">— Sélectionnez —</option>
+              <option>300$ – 500$</option>
+              <option>500$ – 1 000$</option>
+              <option>1 000$ – 3 000$</option>
+              <option>Plus de 3 000$</option>
+              <option>À discuter</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Délai souhaité</label>
+            <select name="delai">
+              <option value="">— Sélectionnez —</option>
+              <option>Urgence (moins de 2 semaines)</option>
+              <option>1 mois</option>
+              <option>2 – 3 mois</option>
+              <option>Plus de 3 mois</option>
+              <option>Pas de contrainte</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Souhaitez-vous une maintenance mensuelle ?</label>
+          <select name="maintenance">
+            <option value="">— Sélectionnez —</option>
+            <option>Oui, je veux qu'on gère le site pour moi</option>
+            <option>Non, je vais gérer moi-même</option>
+            <option>Je veux être formé pour le gérer</option>
+            <option>À discuter</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Informations supplémentaires <span class="opt">(optionnel)</span></label>
+          <textarea name="infos_supp" placeholder="Tout ce que vous voulez nous dire sur votre projet, vos attentes, des détails importants..."></textarea>
+        </div>
+        <div class="field">
+          <label>Comment avez-vous entendu parler de nous ?</label>
+          <select name="source">
+            <option value="">— Sélectionnez —</option>
+            <option>Bouche à oreille</option>
+            <option>Réseaux sociaux</option>
+            <option>Recherche Google</option>
+            <option>Recommandation d'un ami</option>
+            <option>Autre</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="nav" style="margin-top:24px;">
+        <button type="button" class="btn btn-ghost" onclick="goTo(5)">← Retour</button>
+        <span class="step-info">ÉTAPE 6 / 6</span>
+        <button type="button" class="btn btn-primary" onclick="showSummary()">Voir le résumé →</button>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- SUMMARY -->
+  <div id="summary">
+    <div class="header" style="margin-bottom:32px;">
+      <div class="badge">✦ Récapitulatif</div>
+      <h1>Votre <span>Brief</span></h1>
+      <div class="divider"></div>
+      <p class="subtitle">Vérifiez vos informations avant d'envoyer.</p>
+    </div>
+
+    <div id="summaryContent"></div>
+
+    <div style="margin-top:32px; display:flex; flex-direction:column; gap:12px;">
+      <button class="btn btn-pdf" onclick="generatePDF()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        Télécharger en PDF
+      </button>
+      <button class="btn btn-success" onclick="window.print()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimer
+      </button>
+      <button class="btn btn-ghost" style="width:100%; justify-content:center;" onclick="backToForm()">← Modifier mes réponses</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentStep = 1;
+  const totalSteps = 6;
+
+  function goTo(step) {
+    if (step < 1 || step > totalSteps) return;
+
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + step).classList.add('active');
+
+    // Update progress
+    document.querySelectorAll('.prog-dot').forEach((dot, i) => {
+      dot.classList.remove('active', 'done');
+      if (i + 1 === step) dot.classList.add('active');
+      if (i + 1 < step) dot.classList.add('done');
+    });
+
+    currentStep = step;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function getVal(name) {
+    const el = document.querySelector(`[name="${name}"]`);
+    if (!el) return '—';
+    return el.value.trim() || '—';
+  }
+
+  function getChecked(name) {
+    const checked = document.querySelectorAll(`[name="${name}"]:checked`);
+    if (!checked.length) return '—';
+    return Array.from(checked).map(c => c.value.replace(/_/g, ' ')).join(', ');
+  }
+
+  function row(key, val) {
+    if (!val || val === '—') return '';
+    return `<div class="summary-row"><span class="summary-key">${key}</span><span class="summary-val">${val}</span></div>`;
+  }
+
+  function showSummary() {
+    document.getElementById('mainForm').style.display = 'none';
+    document.getElementById('summary').style.display = 'block';
+    document.getElementById('progressBar').style.display = 'none';
+
+    const html = `
+      <div class="summary-block">
+        <h3>📋 Informations Générales</h3>
+        ${row('Établissement', getVal('nom_etablissement'))}
+        ${row('Contact', getVal('contact_nom'))}
+        ${row('Téléphone', getVal('contact_tel'))}
+        ${row('Email', getVal('contact_email'))}
+        ${row('Adresse', getVal('adresse'))}
+        ${row('Type', getVal('type_etablissement'))}
+        ${row('Description', getVal('description'))}
+      </div>
+      <div class="summary-block">
+        <h3>📄 Pages & Fonctionnalités</h3>
+        ${row('Pages souhaitées', getChecked('pages'))}
+        ${row('Fonctionnalités', getChecked('fonctions'))}
+        ${row('Nom de domaine', getVal('domaine'))}
+        ${row('Domaine existant', getVal('domaine_existant'))}
+      </div>
+      <div class="summary-block">
+        <h3>🎨 Design & Ambiance</h3>
+        ${row('Ambiance', getVal('ambiance'))}
+        ${row('Couleurs', getChecked('couleurs'))}
+        ${row('Logo', getVal('logo'))}
+        ${row('Photos', getVal('photos'))}
+        ${row('Sites inspirants', getVal('sites_inspiration'))}
+        ${row('À éviter', getVal('ce_que_non'))}
+      </div>
+      <div class="summary-block">
+        <h3>🛍️ Produits & Menu</h3>
+        ${row('Produits', getVal('produits_liste'))}
+        ${row('Afficher les prix', getVal('afficher_prix'))}
+        ${row('Promotions', getVal('promotions'))}
+        ${row('Horaires', getVal('horaires'))}
+        ${row('Livraison', getVal('livraison'))}
+        ${row('Emporter', getVal('emporter'))}
+      </div>
+      <div class="summary-block">
+        <h3>🎯 Objectifs & Public</h3>
+        ${row('Clientèle cible', getChecked('cible'))}
+        ${row('Objectifs', getChecked('objectifs'))}
+        ${row('Langues', getChecked('langues'))}
+        ${row('Site existant', getVal('site_existant'))}
+        ${row('URL actuel', getVal('url_actuel'))}
+      </div>
+      <div class="summary-block">
+        <h3>💰 Budget & Délais</h3>
+        ${row('Budget', getVal('budget'))}
+        ${row('Délai', getVal('delai'))}
+        ${row('Maintenance', getVal('maintenance'))}
+        ${row('Infos supplémentaires', getVal('infos_supp'))}
+        ${row('Source', getVal('source'))}
+      </div>
+    `;
+
+    document.getElementById('summaryContent').innerHTML = html;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function backToForm() {
+    document.getElementById('mainForm').style.display = 'block';
+    document.getElementById('summary').style.display = 'none';
+    document.getElementById('progressBar').style.display = 'flex';
+    goTo(currentStep);
+  }
+
+  // ── PDF Generation ──────────────────────────────────────────────────────────
+  function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+    const W = 210, H = 297;
+    const ML = 14, MR = 14, MT = 14;
+    const CW = W - ML - MR; // content width = 182
+    let y = MT;
+
+    // ── Color palette ──
+    const GOLD    = [201, 168, 76];
+    const DARK    = [15, 13, 10];
+    const DARK2   = [26, 23, 18];
+    const LIGHT   = [247, 244, 238];
+    const WHITE   = [255, 255, 255];
+    const MUTED   = [138, 128, 112];
+    const TEXT    = [44, 36, 16];
+    const PURPLE  = [123, 45, 139];
+
+    function setColor(rgb, fill=true) {
+      if (fill) doc.setFillColor(...rgb);
+      else doc.setTextColor(...rgb);
+    }
+
+    function checkPage(needed = 10) {
+      if (y + needed > H - 14) {
+        doc.addPage();
+        y = MT;
+        // mini header on new pages
+        doc.setFillColor(...DARK);
+        doc.rect(0, 0, W, 8, 'F');
+        doc.setFontSize(7); doc.setFont('helvetica','normal');
+        setColor(GOLD, false);
+        doc.text('BRIEF CLIENT — CRÉATION DE SITE WEB', ML, 5.5);
+        y = 14;
+      }
+    }
+
+    // ── COVER HEADER ──
+    doc.setFillColor(...DARK);
+    doc.rect(0, 0, W, 38, 'F');
+    // Gold accent line
+    doc.setFillColor(...GOLD);
+    doc.rect(0, 38, W, 1.2, 'F');
+
+    doc.setFontSize(22); doc.setFont('helvetica','bold');
+    setColor(GOLD, false);
+    doc.text('BRIEF CLIENT', W/2, 17, { align:'center' });
+    doc.setFontSize(11); doc.setFont('helvetica','normal');
+    setColor([201,168,76], false);
+    doc.text('Création de Site Web  •  Commerce & Bar', W/2, 26, { align:'center' });
+
+    // Date
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+    doc.setFontSize(8); setColor(MUTED, false);
+    doc.text('Généré le ' + dateStr, W/2, 33, { align:'center' });
+
+    y = 46;
+
+    // ── Info note box ──
+    doc.setFillColor(...[251, 245, 230]);
+    doc.roundedRect(ML, y, CW, 10, 2, 2, 'F');
+    doc.setDrawColor(...GOLD);
+    doc.setLineWidth(0.6);
+    doc.rect(ML, y, 2.5, 10, 'F');
+    doc.setFontSize(8.5); doc.setFont('helvetica','italic'); setColor([122, 92, 32], false);
+    doc.text('Ce document contient le brief complet du client pour la création de son site web.', ML+5, y+6.5);
+    y += 16;
+
+    // ── Helper: section title ──
+    function sectionTitle(num, title, subtitle) {
+      checkPage(20);
+      // dark bg
+      doc.setFillColor(...DARK2);
+      doc.roundedRect(ML, y, CW, 14, 2, 2, 'F');
+      // gold number badge
+      doc.setFillColor(...GOLD);
+      doc.circle(ML+7, y+7, 5.5, 'F');
+      doc.setFontSize(10); doc.setFont('helvetica','bold'); setColor(DARK, false);
+      doc.text(num, ML+7, y+7+3.5, { align:'center' });
+      // title
+      doc.setFontSize(12); doc.setFont('helvetica','bold'); setColor([232,224,208], false);
+      doc.text(title, ML+16, y+6);
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); setColor(MUTED, false);
+      doc.text(subtitle, ML+16, y+11);
+      y += 18;
+    }
+
+    // ── Helper: field row ──
+    function fieldRow(label, value) {
+      if (!value || value === '—') return;
+      checkPage(12);
+      const valLines = doc.splitTextToSize(value, CW - 55);
+      const rowH = Math.max(10, valLines.length * 5 + 4);
+      // row bg
+      doc.setFillColor(...LIGHT);
+      doc.roundedRect(ML, y, CW, rowH, 1.5, 1.5, 'F');
+      // gold left accent
+      doc.setFillColor(...GOLD);
+      doc.rect(ML, y, 2, rowH, 'F');
+      // label
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); setColor(MUTED, false);
+      doc.text(label.toUpperCase(), ML+4, y+4.5);
+      // value
+      doc.setFontSize(9); doc.setFont('helvetica','normal'); setColor(TEXT, false);
+      doc.text(valLines, ML+55, y+5);
+      y += rowH + 3;
+    }
+
+    // ── Helper: tag chips row (for checkboxes) ──
+    function tagsRow(label, value) {
+      if (!value || value === '—') return;
+      checkPage(18);
+      const tags = value.split(', ').map(t => t.replace(/_/g,' ').trim()).filter(Boolean);
+      // label
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); setColor(MUTED, false);
+      doc.text(label.toUpperCase(), ML, y+4);
+      y += 7;
+      // chips
+      let cx = ML;
+      let rowStart = y;
+      tags.forEach(tag => {
+        const tw = doc.getTextWidth(tag) + 7;
+        if (cx + tw > W - MR) { cx = ML; y += 8; checkPage(8); }
+        doc.setFillColor(...DARK2);
+        doc.setDrawColor(...GOLD);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(cx, y, tw, 6, 1.5, 1.5, 'FD');
+        doc.setFontSize(7.5); doc.setFont('helvetica','normal'); setColor(GOLD, false);
+        doc.text(tag, cx + tw/2, y+4.2, { align:'center' });
+        cx += tw + 3;
+      });
+      y += 11;
+    }
+
+    // ── Helper: spacer ──
+    function spacer(h=5) { y += h; checkPage(); }
+
+    // ══════════════════════════════════════════════════
+    // SECTION 1
+    // ══════════════════════════════════════════════════
+    sectionTitle('1', 'Informations Générales', 'Votre établissement en quelques mots');
+    fieldRow('Établissement', getVal('nom_etablissement'));
+    fieldRow('Contact', getVal('contact_nom'));
+    fieldRow('Téléphone', getVal('contact_tel'));
+    fieldRow('Email', getVal('contact_email'));
+    fieldRow('Adresse', getVal('adresse'));
+    fieldRow('Type d\'établissement', getVal('type_etablissement'));
+    fieldRow('Description', getVal('description'));
+    spacer(6);
+
+    // ══════════════════════════════════════════════════
+    // SECTION 2
+    // ══════════════════════════════════════════════════
+    sectionTitle('2', 'Pages & Fonctionnalités', 'Ce que le site doit contenir');
+    tagsRow('Pages souhaitées', getChecked('pages'));
+    tagsRow('Fonctionnalités', getChecked('fonctions'));
+    fieldRow('Nom de domaine', getVal('domaine'));
+    fieldRow('Domaine existant', getVal('domaine_existant'));
+    spacer(6);
+
+    // ══════════════════════════════════════════════════
+    // SECTION 3
+    // ══════════════════════════════════════════════════
+    sectionTitle('3', 'Design & Ambiance', 'L\'identité visuelle du site');
+    fieldRow('Ambiance', getVal('ambiance'));
+    tagsRow('Couleurs', getChecked('couleurs'));
+    fieldRow('Logo', getVal('logo'));
+    fieldRow('Photos', getVal('photos'));
+    fieldRow('Sites inspirants', getVal('sites_inspiration'));
+    fieldRow('À éviter', getVal('ce_que_non'));
+    spacer(6);
+
+    // ══════════════════════════════════════════════════
+    // SECTION 4
+    // ══════════════════════════════════════════════════
+    sectionTitle('4', 'Produits & Menu', 'L\'offre commerciale');
+    fieldRow('Produits / Boissons', getVal('produits_liste'));
+    fieldRow('Afficher les prix', getVal('afficher_prix'));
+    fieldRow('Promotions', getVal('promotions'));
+    fieldRow('Horaires d\'ouverture', getVal('horaires'));
+    fieldRow('Livraison', getVal('livraison'));
+    fieldRow('Commande à emporter', getVal('emporter'));
+    spacer(6);
+
+    // ══════════════════════════════════════════════════
+    // SECTION 5
+    // ══════════════════════════════════════════════════
+    sectionTitle('5', 'Objectifs & Public Cible', 'Qui visitera le site et pourquoi');
+    tagsRow('Clientèle cible', getChecked('cible'));
+    tagsRow('Objectifs', getChecked('objectifs'));
+    tagsRow('Langues du site', getChecked('langues'));
+    fieldRow('Site existant', getVal('site_existant'));
+    fieldRow('URL actuel', getVal('url_actuel'));
+    spacer(6);
+
+    // ══════════════════════════════════════════════════
+    // SECTION 6
+    // ══════════════════════════════════════════════════
+    sectionTitle('6', 'Budget & Délais', 'Planning et investissement');
+    fieldRow('Budget', getVal('budget'));
+    fieldRow('Délai souhaité', getVal('delai'));
+    fieldRow('Maintenance', getVal('maintenance'));
+    fieldRow('Informations supplémentaires', getVal('infos_supp'));
+    fieldRow('Source', getVal('source'));
+    spacer(8);
+
+    // ── FOOTER on last page ──
+    checkPage(20);
+    doc.setFillColor(...DARK);
+    doc.roundedRect(ML, y, CW, 16, 2, 2, 'F');
+    doc.setFillColor(...GOLD);
+    doc.rect(ML, y, CW, 1.5, 'F');
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); setColor(GOLD, false);
+    doc.text('Merci d\'avoir rempli ce questionnaire !', W/2, y+8, { align:'center' });
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); setColor(MUTED, false);
+    doc.text('Ce document a été généré automatiquement depuis le formulaire client.', W/2, y+13, { align:'center' });
+
+    // ── Page numbers ──
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); setColor(MUTED, false);
+      doc.text(`Page ${i} / ${totalPages}`, W - MR, H - 6, { align:'right' });
+    }
+
+    // ── Save ──
+    const nom = getVal('nom_etablissement').replace(/[^a-zA-Z0-9]/g, '_') || 'client';
+    doc.save(`Brief_${nom}_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`);
+  }
+</script>
+</body>
+</html>
